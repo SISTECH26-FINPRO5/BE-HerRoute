@@ -8,7 +8,7 @@ __pycache__/
 *.pyc
 *.pyo
 
-# Environment variables ]
+# Environment variables 
 .env
 
 # Jupyter checkpoint
