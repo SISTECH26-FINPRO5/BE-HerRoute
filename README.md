@@ -11,7 +11,7 @@ This is the backend for the HerRoute application, built with FastAPI and Supabas
 
 ### 1. Clone the repository
 ```bash
-git clone <repository_url>
+git clone https://github.com/SISTECH26-FINPRO5/BE-HerRoute.git
 cd BE-HerRoute
 ```
 
