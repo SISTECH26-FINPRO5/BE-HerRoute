@@ -49,7 +49,14 @@ The application will be available at `http://localhost:8000`. You can access the
 Here is the list of APIs that have been implemented so far:
 
 - `GET /`            : Root endpoint (Health check)
+
+**Auth**
 - `POST /register`   : User registration
 - `POST /login`      : User login
 - `GET /auth/google` : Google OAuth authentication
 - `POST /logout`     : User logout
+
+**Trusted Contacts**
+- `GET /trusted-contacts`                : Get all trusted contacts for logged-in user
+- `POST /trusted-contacts`               : Add a new trusted contact
+- `DELETE /trusted-contacts/{contact_id}`: Delete a specific trusted contact

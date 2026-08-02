@@ -11,3 +11,7 @@ class UserCreate(BaseModel):
 class UserLogin(BaseModel):
     email: str = Field(pattern=EMAIL_REGEX, json_schema_extra={"example": "string@example.com"})
     password: str = Field(json_schema_extra={"example": "string"})
+
+class TrustedContactCreate(BaseModel):
+    name: str = Field(..., json_schema_extra={"example": "Mom"})
+    phone_number: str = Field(..., json_schema_extra={"example": "+628123456789"})
