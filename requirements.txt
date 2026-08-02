@@ -43,3 +43,8 @@ websockets==15.0.1
 yarl==1.24.5
 supabase
 python-multipart
+pandas
+numpy
+scikit-learn==1.6.1
+networkx
+joblib

@@ -1,9 +1,32 @@
 from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import RedirectResponse
+from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+
 from .schemas import UserCreate, UserLogin
 from .database import supabase, frontend_url
+from .routers.ml import router as ml_router
+from .ml.loader import load_artifacts
 
-app = FastAPI(title="FastAPI Project with Supabase")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Load ML artifacts on startup
+    app.state.ml_artifacts = load_artifacts()
+    yield
+    # Clean up on shutdown if needed
+    app.state.ml_artifacts = None
+
+app = FastAPI(title="FastAPI Project with ML", lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[frontend_url, "http://localhost:3000", "*"], # Adjust in production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(ml_router)
 
 @app.get("/")
 def root():
