@@ -80,8 +80,9 @@ Check out the interactive Swagger API documentation at: **`http://localhost:8000
 
 ### Machine Learning & Routing
 - `POST /api/ml/risk-indicator` : Predicts safety risk at a coordinate for a specific time/day.
-- `POST /api/ml/safe-places` : Finds nearest safe places (minimarkets, police stations) via `BallTree` spatial search.
+- `GET /api/ml/safe-places` : Finds nearest safe places (minimarkets, police stations) via `BallTree` spatial search.
 - `POST /api/ml/safe-route` : Generates the best route from Point A to Point B with optimization priorities (`fast` or `safe`).
+- `GET /api/ml/reports` : Retrieve all submitted anonymous crime/harassment reports.
 - `POST /api/ml/reports` : Anonymous submission of crime/harassment reports directly mapped to geospatial features.
 
 ## Architecture Highlights
