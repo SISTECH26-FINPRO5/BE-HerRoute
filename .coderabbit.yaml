@@ -1,0 +1,12 @@
+language: "en-US"
+tone_instructions: "Please provide constructive and encouraging feedback. This is an MLOps Final Project for a university/bootcamp, so focus on code quality, security, and best practices in FastAPI and Python."
+reviews:
+  profile: "chill"
+  request_changes_workflow: false
+  high_level_summary: true
+  auto_review:
+    drafts: false
+    base_branches:
+      - "main"
+chat:
+  auto_reply: true
