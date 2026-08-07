@@ -15,6 +15,12 @@
 
 ---
 
+<p align="center">
+  <strong>Group 5</strong> Nadia Aisyah Fazila & Sabbia Meilandri Putri Delarosya 
+</p>
+
+---
+
 ## 📖 Gambaran Umum
 
 **HerRoute** adalah aplikasi pencari rute aman berbasis *machine learning* yang dirancang khusus untuk membantu perempuan bernavigasi di jalanan kota dengan aman, baik siang maupun malam hari. Repositori ini berisi sistem **Backend (BE)**, yang dibangun untuk beroperasi sangat cepat, tangguh, dan terintegrasi secara mendalam dengan algoritma *Machine Learning* tingkat lanjut untuk graf jalanan dan pencarian spasial.
@@ -65,6 +71,13 @@ uvicorn app.main:app --reload
 Aplikasi akan langsung berjalan di `http://localhost:8000`. 
 Kamu bisa membuka dokumentasi API interaktif (Swagger) di: **`http://localhost:8000/docs`**
 
+### 5. Seeding Database (Opsional)
+Jika Anda membutuhkan data *dummy* secara instan untuk keperluan testing dan memeriahkan grafik *dashboard monitoring*, Anda bisa menjalankan *script* berikut:
+```bash
+python seed_db.py
+```
+*(Script ini akan secara otomatis men-generate 50+ data laporan, log prediksi, user, dan kontak darurat).*
+
 ## 🌐 Daftar Endpoint API
 
 ### Autentikasi & Pengguna (Auth)
@@ -84,6 +97,11 @@ Kamu bisa membuka dokumentasi API interaktif (Swagger) di: **`http://localhost:8
 - `POST /api/ml/safe-route` : Menghasilkan rute terbaik dari Titik A ke Titik B dengan prioritas optimasi (`fast` / cepat atau `safe` / aman).
 - `GET /api/ml/reports` : Mengambil semua data laporan kejahatan/pelecehan publik yang di-submit secara anonim.
 - `POST /api/ml/reports` : Menambahkan laporan kejahatan anonim yang dipetakan langsung ke fitur geospasial.
+
+### Monitoring & KPI Dashboard (PM Reporting)
+- `GET /api/monitoring/logs` : Mengambil histori prediksi ML secara rinci.
+- `GET /api/monitoring/metrics` : Menampilkan agregasi performa, **KPI Kualitas (Error Rate & Data Drift)**, dan **KPI Scope (Feature Completion Rate)** untuk laporan ke PM.
+- `GET /api/monitoring/evaluations` : Membaca metrik evaluasi asli dari *model artifacts* (*MAE, RMSE, R2 Score*).
 
 ## Sorotan Arsitektur (Architecture Highlights)
 - **Pre-computed Risk Graph**: Untuk menghindari waktu *startup* yang lambat, graf jalanan kota yang masif (lebih dari 12.000 koneksi) sudah di-*compile* sebelumnya dan diekspor sebagai `.joblib`. Ini memungkinkan backend untuk menyala dalam waktu kurang dari satu detik (*sub-second boot time*).
