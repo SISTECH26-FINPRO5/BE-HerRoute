@@ -72,9 +72,9 @@ def get_model_evaluations():
             version_name = f"v{int(row['version'])} ({row['strategy']})"
             evaluations.append({
                 "version": version_name,
-                "mae": round(row['metrics.MAE'], 4),
-                "rmse": round(row['metrics.RMSE'], 4),
-                "r2_score": round(row['metrics.R2'], 4),
+                "mae": round(float(row['metrics.MAE']), 4),
+                "rmse": round(float(row['metrics.RMSE']), 4),
+                "r2_score": round(float(row['metrics.R2']), 4),
                 "created_at": str(row['timestamp'])
             })
         return evaluations
