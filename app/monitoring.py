@@ -11,7 +11,6 @@ def log_prediction(endpoint: str, latency_ms: float, input_data: dict, predictio
         return
 
     try:
-        # Sanitize input and output to strings or JSON for database storage
         log_entry = {
             "endpoint": endpoint,
             "latency_ms": latency_ms,
@@ -21,7 +20,6 @@ def log_prediction(endpoint: str, latency_ms: float, input_data: dict, predictio
             "created_at": datetime.utcnow().isoformat()
         }
         
-        # Fire and forget insert
         response = supabase.table("prediction_logs").insert(log_entry).execute()
         if not response.data:
             print(f"Warning: Failed to log prediction for {endpoint}")
