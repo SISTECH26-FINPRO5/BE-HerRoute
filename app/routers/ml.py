@@ -1,14 +1,16 @@
-from fastapi import APIRouter, Request, HTTPException, status
+from fastapi import APIRouter, Request, HTTPException, status, BackgroundTasks
 from typing import List, Optional
 import numpy as np
 import pandas as pd
 import networkx as nx
+import time
 from ..schemas import (
     RiskIndicatorRequest, RiskIndicatorResponse,
     SafePlaceResponse, SafeRouteRequest, SafeRouteResponse,
     ReportCreate, ReportResponse
 )
 from ..database import supabase
+from ..monitoring import log_prediction
 
 router = APIRouter(prefix="/api/ml", tags=["ML endpoints"])
 
@@ -40,7 +42,8 @@ def assemble_features_v2_dynamic(data, cell_target_map, global_mean_val, feature
     return data[feature_cols]
 
 @router.post("/risk-indicator", response_model=RiskIndicatorResponse)
-def get_risk_indicator(request: Request, body: RiskIndicatorRequest):
+def get_risk_indicator(request: Request, body: RiskIndicatorRequest, background_tasks: BackgroundTasks):
+    start_time = time.time()
     artifacts = request.app.state.ml_artifacts
     model = artifacts["champion_model"]
     model_context = artifacts["model_context"]
@@ -80,11 +83,16 @@ def get_risk_indicator(request: Request, body: RiskIndicatorRequest):
     else:
         tier, color = "Aman", "green"
         
-    return {
+    response_data = {
         "cell_id": cell_id, "risk_score": round(risk_score, 2), "tier": tier, "color": color,
         "is_mock": True,
         "mock_note": "Skor ini hasil simulasi, koordinat Jakarta ditempelkan ke sel Chicago asli terdekat untuk mengambil pola historisnya, bukan cerminan kondisi keamanan Jakarta yang sesungguhnya."
     }
+    
+    latency_ms = (time.time() - start_time) * 1000
+    background_tasks.add_task(log_prediction, "/risk-indicator", latency_ms, body.dict(), response_data)
+    
+    return response_data
 
 @router.get("/safe-places", response_model=List[SafePlaceResponse])
 def get_safe_places(request: Request, lat: float, lon: float, k: int = 5):
@@ -115,7 +123,8 @@ def get_safe_places(request: Request, lat: float, lon: float, k: int = 5):
     return places
 
 @router.post("/safe-route", response_model=SafeRouteResponse)
-def get_safe_route(request: Request, body: SafeRouteRequest):
+def get_safe_route(request: Request, body: SafeRouteRequest, background_tasks: BackgroundTasks):
+    start_time = time.time()
     artifacts = request.app.state.ml_artifacts
     cell_hist_tree = artifacts["cell_hist_tree"]
     cell_hist_lookup = artifacts["cell_hist_lookup"]
@@ -146,12 +155,17 @@ def get_safe_route(request: Request, body: SafeRouteRequest):
         
     avg_risk_path = np.mean([G.nodes[c].get("risk", 0) for c in path])
     
-    return {
+    response_data = {
         "path": path,
         "avg_risk": round(avg_risk_path, 2),
         "is_mock": True,
         "mock_note": "Rute ini hasil simulasi pada graf Chicago, bukan jalan Jakarta yang sesungguhnya."
     }
+    
+    latency_ms = (time.time() - start_time) * 1000
+    background_tasks.add_task(log_prediction, "/safe-route", latency_ms, body.dict(), {"avg_risk": response_data["avg_risk"], "path_length": len(path)})
+    
+    return response_data
 
 @router.post("/reports", response_model=ReportResponse)
 def create_report(body: ReportCreate):
