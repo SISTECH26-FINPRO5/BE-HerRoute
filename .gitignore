@@ -25,3 +25,6 @@ Thumbs.db
 
 # MD
 implementation_plan.md
+
+# DB Seeding
+seed_db.py
