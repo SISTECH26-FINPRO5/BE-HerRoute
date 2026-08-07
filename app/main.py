@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 from .schemas import UserCreate, UserLogin
 from .database import supabase, frontend_url
 from .routers.ml import router as ml_router
+from .routers.monitoring import router as monitoring_router
 from .ml.loader import load_artifacts
 
 @asynccontextmanager
@@ -27,6 +28,7 @@ app.add_middleware(
 )
 
 app.include_router(ml_router)
+app.include_router(monitoring_router)
 
 @app.get("/")
 def root():

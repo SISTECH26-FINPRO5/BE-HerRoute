@@ -3,7 +3,7 @@
 </h1>
 
 <p align="center">
-  <strong>A Backend for Safe Routing & Safety Indicator for Women</strong>
+  <strong>Backend untuk Navigasi Rute Aman & Indikator Keselamatan Perempuan</strong>
 </p>
 
 <p align="center">
@@ -15,79 +15,97 @@
 
 ---
 
-## 📖 Overview
+<p align="center">
+  <strong>Group 5</strong> Nadia Aisyah Fazila & Sabbia Meilandri Putri Delarosya 
+</p>
 
-**HerRoute** is a machine learning-powered safety routing application specifically designed to help women navigate city streets safely, day or night. This repository contains the **Backend**, built to be incredibly fast, robust, and heavily integrated with advanced Machine Learning graph-routing and spatial search algorithms.
+---
 
-## 🛠 Tech Stack
+## 📖 Gambaran Umum
 
-- **Framework**: [FastAPI](https://fastapi.tiangolo.com/) (High performance, async python framework)
+**HerRoute** adalah aplikasi pencari rute aman berbasis *machine learning* yang dirancang khusus untuk membantu perempuan bernavigasi di jalanan kota dengan aman, baik siang maupun malam hari. Repositori ini berisi sistem **Backend (BE)**, yang dibangun untuk beroperasi sangat cepat, tangguh, dan terintegrasi secara mendalam dengan algoritma *Machine Learning* tingkat lanjut untuk graf jalanan dan pencarian spasial.
+
+## 🛠 Teknologi yang Digunakan
+
+- **Framework**: [FastAPI](https://fastapi.tiangolo.com/) (Framework Python asinkron dengan performa tinggi)
 - **Database & Auth**: [Supabase](https://supabase.com/) (PostgreSQL & Row-Level Security)
 - **Machine Learning**: 
-  - `scikit-learn` (GradientBoostingRegressor & BallTree for spatial queries)
-  - `networkx` (Graph creation and A* routing optimization)
-  - `pandas` & `numpy` (Fast matrix/array computations)
+  - `scikit-learn` (GradientBoostingRegressor & BallTree untuk *query* spasial)
+  - `networkx` (Pembuatan Graf dan optimasi rute A*)
+  - `pandas` & `numpy` (Komputasi matriks/array berkecepatan tinggi)
 
-## 🏁 Getting Started
+## 🏁 Panduan Instalasi
 
-### 1. Prerequisites
+### 1. Prasyarat (Prerequisites)
 - Python 3.8+
 - Git
 
-### 2. Installation
+### 2. Instalasi
 ```bash
-# Clone the repository
+# Clone repositori
 git clone https://github.com/SISTECH26-FINPRO5/BE-HerRoute.git
 cd BE-HerRoute
 
-# Create a virtual environment
+# Buat virtual environment
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+source venv/bin/activate  # Untuk Windows: venv\Scripts\activate
 
-# Install dependencies
+# Install dependensi (library)
 pip install -r requirements.txt
 ```
 
-### 3. Environment Variables
-Create a `.env` file in the root directory based on `.env.example`:
+### 3. Konfigurasi Environment Variables
+Buat file `.env` di dalam root direktori berdasarkan *template* `.env.example`:
 ```bash
 cp .env.example .env
 ```
-Fill in your Supabase credentials:
-- `SUPABASE_URL`: Your Supabase project URL.
-- `SUPABASE_KEY`: Your Supabase project anon key.
-- `FRONTEND_URL`: URL of the frontend app (default: `http://localhost:3000`).
+Isi variabel di dalamnya dengan kredensial Supabase kamu:
+- `SUPABASE_URL`: URL proyek Supabase milikmu.
+- `SUPABASE_KEY`: Kunci anonim (anon key) dari proyek Supabase milikmu.
+- `FRONTEND_URL`: URL untuk aplikasi *frontend* (default: `http://localhost:3000`).
 
-### 4. Running the Application
+### 4. Menjalankan Aplikasi
 ```bash
 uvicorn app.main:app --reload
 ```
-The application will instantly start at `http://localhost:8000`. 
-Check out the interactive Swagger API documentation at: **`http://localhost:8000/docs`**
+Aplikasi akan langsung berjalan di `http://localhost:8000`. 
+Kamu bisa membuka dokumentasi API interaktif (Swagger) di: **`http://localhost:8000/docs`**
 
-## 🌐 API Endpoints
+### 5. Seeding Database (Opsional)
+Jika Anda membutuhkan data *dummy* secara instan untuk keperluan testing dan memeriahkan grafik *dashboard monitoring*, Anda bisa menjalankan *script* berikut:
+```bash
+python seed_db.py
+```
+*(Script ini akan secara otomatis men-generate 50+ data laporan, log prediksi, user, dan kontak darurat).*
 
-### Auth & Users
-- `POST /register` : Create a new user account
-- `POST /login` : Authenticate user and get session
-- `GET /auth/google` : Google OAuth login
-- `POST /logout` : End user session
+## 🌐 Daftar Endpoint API
 
-### Trusted Contacts
-- `GET /trusted-contacts` : Get all trusted emergency contacts
-- `POST /trusted-contacts` : Add a new trusted contact
-- `DELETE /trusted-contacts/{id}` : Remove a trusted contact
+### Autentikasi & Pengguna (Auth)
+- `POST /register` : Mendaftarkan akun pengguna baru
+- `POST /login` : Autentikasi pengguna dan mendapatkan sesi (session)
+- `GET /auth/google` : Login menggunakan Google OAuth
+- `POST /logout` : Mengakhiri sesi pengguna
 
-### Machine Learning & Routing
-- `POST /api/ml/risk-indicator` : Predicts safety risk at a coordinate for a specific time/day.
-- `GET /api/ml/safe-places` : Finds nearest safe places (minimarkets, police stations) via `BallTree` spatial search.
-- `POST /api/ml/safe-route` : Generates the best route from Point A to Point B with optimization priorities (`fast` or `safe`).
-- `GET /api/ml/reports` : Retrieve all submitted anonymous crime/harassment reports.
-- `POST /api/ml/reports` : Anonymous submission of crime/harassment reports directly mapped to geospatial features.
+### Kontak Darurat (Trusted Contacts)
+- `GET /trusted-contacts` : Mengambil semua data kontak darurat milik pengguna
+- `POST /trusted-contacts` : Menambahkan kontak darurat baru
+- `DELETE /trusted-contacts/{id}` : Menghapus sebuah kontak darurat
 
-## Architecture Highlights
-- **Pre-computed Risk Graph**: To avoid slow startup times, the massive 12,000+ edges city street graph is pre-compiled and exported as `.joblib`, allowing the backend to achieve a sub-second boot time.
-- **BallTree Spatial Indexing**: We utilize `sklearn.neighbors.BallTree` with haversine distance for blazing fast `$O(N \log N)$` nearest-neighbor lookups on a sphere (Earth).
+### Machine Learning & Pencarian Rute
+- `POST /api/ml/risk-indicator` : Memprediksi risiko keamanan di suatu koordinat pada jam/hari tertentu.
+- `GET /api/ml/safe-places` : Mencari tempat aman terdekat (minimarket, pos polisi) menggunakan pencarian spasial `BallTree`.
+- `POST /api/ml/safe-route` : Menghasilkan rute terbaik dari Titik A ke Titik B dengan prioritas optimasi (`fast` / cepat atau `safe` / aman).
+- `GET /api/ml/reports` : Mengambil semua data laporan kejahatan/pelecehan publik yang di-submit secara anonim.
+- `POST /api/ml/reports` : Menambahkan laporan kejahatan anonim yang dipetakan langsung ke fitur geospasial.
+
+### Monitoring & KPI Dashboard (PM Reporting)
+- `GET /api/monitoring/logs` : Mengambil histori prediksi ML secara rinci.
+- `GET /api/monitoring/metrics` : Menampilkan agregasi performa, **KPI Kualitas (Error Rate & Data Drift)**, dan **KPI Scope (Feature Completion Rate)** untuk laporan ke PM.
+- `GET /api/monitoring/evaluations` : Membaca metrik evaluasi asli dari *model artifacts* (*MAE, RMSE, R2 Score*).
+
+## Sorotan Arsitektur (Architecture Highlights)
+- **Pre-computed Risk Graph**: Untuk menghindari waktu *startup* yang lambat, graf jalanan kota yang masif (lebih dari 12.000 koneksi) sudah di-*compile* sebelumnya dan diekspor sebagai `.joblib`. Ini memungkinkan backend untuk menyala dalam waktu kurang dari satu detik (*sub-second boot time*).
+- **BallTree Spatial Indexing**: Menggunakan `sklearn.neighbors.BallTree` dengan metrik jarak *haversine* untuk pencarian tetangga terdekat dengan kecepatan kilat `$O(N \log N)$` pada bidang bola (Bumi).
 
 ## 📂 Struktur Direktori
 
