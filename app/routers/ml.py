@@ -44,55 +44,62 @@ def assemble_features_v2_dynamic(data, cell_target_map, global_mean_val, feature
 @router.post("/risk-indicator", response_model=RiskIndicatorResponse)
 def get_risk_indicator(request: Request, body: RiskIndicatorRequest, background_tasks: BackgroundTasks):
     start_time = time.time()
-    artifacts = request.app.state.ml_artifacts
-    model = artifacts["champion_model"]
-    model_context = artifacts["model_context"]
-    cell_hist_tree = artifacts["cell_hist_tree"]
-    cell_hist_lookup = artifacts["cell_hist_lookup"]
-    remap_bounds = artifacts["remap_bounds"]
-    
-    cell_target_map = model_context["cell_target_map"]
-    global_mean_val = model_context["global_mean_val"]
-    T_LOW = model_context["T_LOW"]
-    T_HIGH = model_context["T_HIGH"]
-    GRID_DECIMALS = model_context["GRID_DECIMALS"]
-    FEATURE_COLS_V2 = model_context["FEATURE_COLS_V2"]
-    
-    mock_lat, mock_lon = remap_coord(body.lat, body.lon, **remap_bounds)
-    lat_r = round(mock_lat, GRID_DECIMALS)
-    lon_r = round(mock_lon, GRID_DECIMALS)
-    cell_id = f"{lat_r}_{lon_r}"
-    
-    snapped_cell_id, hist_crime_count, crime_diversity = snap_to_nearest_cell(
-        lat_r, lon_r, cell_hist_tree, cell_hist_lookup)
+    try:
+        artifacts = request.app.state.ml_artifacts
+        model = artifacts["champion_model"]
+        model_context = artifacts["model_context"]
+        cell_hist_tree = artifacts["cell_hist_tree"]
+        cell_hist_lookup = artifacts["cell_hist_lookup"]
+        remap_bounds = artifacts["remap_bounds"]
         
-    row = pd.DataFrame([{
-        "cell_id": snapped_cell_id, "lat_r": lat_r, "lon_r": lon_r,
-        "dow": body.dow, "hour": body.hour,
-        "hour_sin": np.sin(2 * np.pi * body.hour / 24), "hour_cos": np.cos(2 * np.pi * body.hour / 24),
-        "dow_sin": np.sin(2 * np.pi * body.dow / 7), "dow_cos": np.cos(2 * np.pi * body.dow / 7),
-        "hist_crime_count": hist_crime_count, "crime_diversity": crime_diversity,
-    }])
-    X = assemble_features_v2_dynamic(row, cell_target_map, global_mean_val, FEATURE_COLS_V2)
-    risk_score = float(np.clip(model.predict(X)[0], 0, 100))
-    
-    if risk_score >= T_HIGH:
-        tier, color = "Rawan", "red"
-    elif risk_score >= T_LOW:
-        tier, color = "Waspada", "yellow"
-    else:
-        tier, color = "Aman", "green"
+        cell_target_map = model_context["cell_target_map"]
+        global_mean_val = model_context["global_mean_val"]
+        T_LOW = model_context["T_LOW"]
+        T_HIGH = model_context["T_HIGH"]
+        GRID_DECIMALS = model_context["GRID_DECIMALS"]
+        FEATURE_COLS_V2 = model_context["FEATURE_COLS_V2"]
         
-    response_data = {
-        "cell_id": cell_id, "risk_score": round(risk_score, 2), "tier": tier, "color": color,
-        "is_mock": True,
-        "mock_note": "Skor ini hasil simulasi, koordinat Jakarta ditempelkan ke sel Chicago asli terdekat untuk mengambil pola historisnya, bukan cerminan kondisi keamanan Jakarta yang sesungguhnya."
-    }
-    
-    latency_ms = (time.time() - start_time) * 1000
-    background_tasks.add_task(log_prediction, "/risk-indicator", latency_ms, body.dict(), response_data)
-    
-    return response_data
+        mock_lat, mock_lon = remap_coord(body.lat, body.lon, **remap_bounds)
+        lat_r = round(mock_lat, GRID_DECIMALS)
+        lon_r = round(mock_lon, GRID_DECIMALS)
+        cell_id = f"{lat_r}_{lon_r}"
+        
+        snapped_cell_id, hist_crime_count, crime_diversity = snap_to_nearest_cell(
+            lat_r, lon_r, cell_hist_tree, cell_hist_lookup)
+            
+        row = pd.DataFrame([{
+            "cell_id": snapped_cell_id, "lat_r": lat_r, "lon_r": lon_r,
+            "dow": body.dow, "hour": body.hour,
+            "hour_sin": np.sin(2 * np.pi * body.hour / 24), "hour_cos": np.cos(2 * np.pi * body.hour / 24),
+            "dow_sin": np.sin(2 * np.pi * body.dow / 7), "dow_cos": np.cos(2 * np.pi * body.dow / 7),
+            "hist_crime_count": hist_crime_count, "crime_diversity": crime_diversity,
+        }])
+        X = assemble_features_v2_dynamic(row, cell_target_map, global_mean_val, FEATURE_COLS_V2)
+        risk_score = float(np.clip(model.predict(X)[0], 0, 100))
+        
+        if risk_score >= T_HIGH:
+            tier, color = "Rawan", "red"
+        elif risk_score >= T_LOW:
+            tier, color = "Waspada", "yellow"
+        else:
+            tier, color = "Aman", "green"
+            
+        response_data = {
+            "cell_id": cell_id, "risk_score": round(risk_score, 2), "tier": tier, "color": color,
+            "is_mock": True,
+            "mock_note": "Skor ini hasil simulasi, koordinat Jakarta ditempelkan ke sel Chicago asli terdekat untuk mengambil pola historisnya, bukan cerminan kondisi keamanan Jakarta yang sesungguhnya."
+        }
+        
+        latency_ms = (time.time() - start_time) * 1000
+        log_data = response_data.copy()
+        log_data["status"] = "success"
+        background_tasks.add_task(log_prediction, "/risk-indicator", latency_ms, body.dict(), log_data)
+        
+        return response_data
+    except Exception as e:
+        latency_ms = (time.time() - start_time) * 1000
+        background_tasks.add_task(log_prediction, "/risk-indicator", latency_ms, body.dict(), {"status": "error", "error_message": str(e)})
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/safe-places", response_model=List[SafePlaceResponse])
 def get_safe_places(request: Request, lat: float, lon: float, k: int = 5):
@@ -125,47 +132,53 @@ def get_safe_places(request: Request, lat: float, lon: float, k: int = 5):
 @router.post("/safe-route", response_model=SafeRouteResponse)
 def get_safe_route(request: Request, body: SafeRouteRequest, background_tasks: BackgroundTasks):
     start_time = time.time()
-    artifacts = request.app.state.ml_artifacts
-    cell_hist_tree = artifacts["cell_hist_tree"]
-    cell_hist_lookup = artifacts["cell_hist_lookup"]
-    remap_bounds = artifacts["remap_bounds"]
-    model_context = artifacts["model_context"]
-    GRID_DECIMALS = model_context["GRID_DECIMALS"]
-    G = artifacts["risk_graph"]
-    
-    s_mock_lat, s_mock_lon = remap_coord(body.start_lat, body.start_lon, **remap_bounds)
-    s_lat_r = round(s_mock_lat, GRID_DECIMALS)
-    s_lon_r = round(s_mock_lon, GRID_DECIMALS)
-    start_cell, _, _ = snap_to_nearest_cell(s_lat_r, s_lon_r, cell_hist_tree, cell_hist_lookup)
-    
-    e_mock_lat, e_mock_lon = remap_coord(body.end_lat, body.end_lon, **remap_bounds)
-    e_lat_r = round(e_mock_lat, GRID_DECIMALS)
-    e_lon_r = round(e_mock_lon, GRID_DECIMALS)
-    end_cell, _, _ = snap_to_nearest_cell(e_lat_r, e_lon_r, cell_hist_tree, cell_hist_lookup)
-    
-    weight_key = "weight_safe" if body.mode == "safe" else "weight_fast"
-    
-    if start_cell not in G or end_cell not in G:
-        raise HTTPException(status_code=404, detail="Start or end cell not found in risk graph.")
-        
     try:
-        path = nx.shortest_path(G, start_cell, end_cell, weight=weight_key)
-    except nx.NetworkXNoPath:
-        raise HTTPException(status_code=404, detail="Tidak ada rute yang tersedia di antara kedua titik tersebut.")
+        artifacts = request.app.state.ml_artifacts
+        cell_hist_tree = artifacts["cell_hist_tree"]
+        cell_hist_lookup = artifacts["cell_hist_lookup"]
+        remap_bounds = artifacts["remap_bounds"]
+        model_context = artifacts["model_context"]
+        GRID_DECIMALS = model_context["GRID_DECIMALS"]
+        G = artifacts["risk_graph"]
         
-    avg_risk_path = np.mean([G.nodes[c].get("risk", 0) for c in path])
-    
-    response_data = {
-        "path": path,
-        "avg_risk": round(avg_risk_path, 2),
-        "is_mock": True,
-        "mock_note": "Rute ini hasil simulasi pada graf Chicago, bukan jalan Jakarta yang sesungguhnya."
-    }
-    
-    latency_ms = (time.time() - start_time) * 1000
-    background_tasks.add_task(log_prediction, "/safe-route", latency_ms, body.dict(), {"avg_risk": response_data["avg_risk"], "path_length": len(path)})
-    
-    return response_data
+        s_mock_lat, s_mock_lon = remap_coord(body.start_lat, body.start_lon, **remap_bounds)
+        s_lat_r = round(s_mock_lat, GRID_DECIMALS)
+        s_lon_r = round(s_mock_lon, GRID_DECIMALS)
+        start_cell, _, _ = snap_to_nearest_cell(s_lat_r, s_lon_r, cell_hist_tree, cell_hist_lookup)
+        
+        e_mock_lat, e_mock_lon = remap_coord(body.end_lat, body.end_lon, **remap_bounds)
+        e_lat_r = round(e_mock_lat, GRID_DECIMALS)
+        e_lon_r = round(e_mock_lon, GRID_DECIMALS)
+        end_cell, _, _ = snap_to_nearest_cell(e_lat_r, e_lon_r, cell_hist_tree, cell_hist_lookup)
+        
+        weight_key = "weight_safe" if body.mode == "safe" else "weight_fast"
+        
+        if start_cell not in G or end_cell not in G:
+            raise Exception("Start or end cell not found in risk graph.")
+            
+        try:
+            path = nx.shortest_path(G, start_cell, end_cell, weight=weight_key)
+        except nx.NetworkXNoPath:
+            raise Exception("Tidak ada rute yang tersedia di antara kedua titik tersebut.")
+            
+        avg_risk_path = np.mean([G.nodes[c].get("risk", 0) for c in path])
+        
+        response_data = {
+            "path": path,
+            "avg_risk": round(avg_risk_path, 2),
+            "is_mock": True,
+            "mock_note": "Rute ini hasil simulasi pada graf Chicago, bukan jalan Jakarta yang sesungguhnya."
+        }
+        
+        latency_ms = (time.time() - start_time) * 1000
+        log_data = {"avg_risk": response_data["avg_risk"], "path_length": len(path), "status": "success"}
+        background_tasks.add_task(log_prediction, "/safe-route", latency_ms, body.dict(), log_data)
+        
+        return response_data
+    except Exception as e:
+        latency_ms = (time.time() - start_time) * 1000
+        background_tasks.add_task(log_prediction, "/safe-route", latency_ms, body.dict(), {"status": "error", "error_message": str(e)})
+        raise HTTPException(status_code=404 if "Tidak ada rute" in str(e) else 500, detail=str(e))
 
 @router.post("/reports", response_model=ReportResponse)
 def create_report(body: ReportCreate):
