@@ -107,3 +107,23 @@ python seed_db.py
 - **Pre-computed Risk Graph**: Untuk menghindari waktu *startup* yang lambat, graf jalanan kota yang masif (lebih dari 12.000 koneksi) sudah di-*compile* sebelumnya dan diekspor sebagai `.joblib`. Ini memungkinkan backend untuk menyala dalam waktu kurang dari satu detik (*sub-second boot time*).
 - **BallTree Spatial Indexing**: Menggunakan `sklearn.neighbors.BallTree` dengan metrik jarak *haversine* untuk pencarian tetangga terdekat dengan kecepatan kilat `$O(N \log N)$` pada bidang bola (Bumi).
 
+## 📂 Struktur Direktori
+
+```text
+BE-HerRoute/
+├── app/
+│   ├── routers/
+│   │   ├── ml.py
+│   │   └── monitoring.py
+│   ├── database.py
+│   ├── main.py
+│   ├── monitoring.py
+│   └── schemas.py
+├── artifacts/              # Hasil prep-data & graf jalanan
+├── models_artifacts/       # Model ML (.joblib) & CSV metrics (registry)
+├── seed_db.py              # Script utilitas untuk seeding data ke database
+├── monitoring.db           # SQLite database lokal (opsional/ter-generate otomatis)
+├── requirements.txt
+└── README.md
+```
+
