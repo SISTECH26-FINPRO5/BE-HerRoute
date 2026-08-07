@@ -15,6 +15,12 @@
 
 ---
 
+<p align="center">
+  <strong>Group 5</strong> Nadia Aisyah Fazila & Sabbia Meilandri Putri Delarosya 
+</p>
+
+---
+
 ## 📖 Gambaran Umum
 
 **HerRoute** adalah aplikasi pencari rute aman berbasis *machine learning* yang dirancang khusus untuk membantu perempuan bernavigasi di jalanan kota dengan aman, baik siang maupun malam hari. Repositori ini berisi sistem **Backend (BE)**, yang dibangun untuk beroperasi sangat cepat, tangguh, dan terintegrasi secara mendalam dengan algoritma *Machine Learning* tingkat lanjut untuk graf jalanan dan pencarian spasial.
