@@ -88,3 +88,4 @@ Kamu bisa membuka dokumentasi API interaktif (Swagger) di: **`http://localhost:8
 ## Sorotan Arsitektur (Architecture Highlights)
 - **Pre-computed Risk Graph**: Untuk menghindari waktu *startup* yang lambat, graf jalanan kota yang masif (lebih dari 12.000 koneksi) sudah di-*compile* sebelumnya dan diekspor sebagai `.joblib`. Ini memungkinkan backend untuk menyala dalam waktu kurang dari satu detik (*sub-second boot time*).
 - **BallTree Spatial Indexing**: Menggunakan `sklearn.neighbors.BallTree` dengan metrik jarak *haversine* untuk pencarian tetangga terdekat dengan kecepatan kilat `$O(N \log N)$` pada bidang bola (Bumi).
+
