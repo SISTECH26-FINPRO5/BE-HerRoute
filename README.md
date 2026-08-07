@@ -89,3 +89,23 @@ Check out the interactive Swagger API documentation at: **`http://localhost:8000
 - **Pre-computed Risk Graph**: To avoid slow startup times, the massive 12,000+ edges city street graph is pre-compiled and exported as `.joblib`, allowing the backend to achieve a sub-second boot time.
 - **BallTree Spatial Indexing**: We utilize `sklearn.neighbors.BallTree` with haversine distance for blazing fast `$O(N \log N)$` nearest-neighbor lookups on a sphere (Earth).
 
+## 📂 Struktur Direktori
+
+```text
+BE-HerRoute/
+├── app/
+│   ├── routers/
+│   │   ├── ml.py
+│   │   └── monitoring.py
+│   ├── database.py
+│   ├── main.py
+│   ├── monitoring.py
+│   └── schemas.py
+├── artifacts/              # Hasil prep-data & graf jalanan
+├── models_artifacts/       # Model ML (.joblib) & CSV metrics (registry)
+├── seed_db.py              # Script utilitas untuk seeding data ke database
+├── monitoring.db           # SQLite database lokal (opsional/ter-generate otomatis)
+├── requirements.txt
+└── README.md
+```
+
