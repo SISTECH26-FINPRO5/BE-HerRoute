@@ -25,6 +25,20 @@
 
 **HerRoute** adalah aplikasi pencari rute aman berbasis *machine learning* yang dirancang khusus untuk membantu perempuan bernavigasi di jalanan kota dengan aman, baik siang maupun malam hari. Repositori ini berisi sistem **Backend (BE)**, yang dibangun untuk beroperasi sangat cepat, tangguh, dan terintegrasi secara mendalam dengan algoritma *Machine Learning* tingkat lanjut untuk graf jalanan dan pencarian spasial.
 
+## Alur MLOps (Fokus Backend)
+
+Berikut adalah ringkasan alur kerja (*workflow*) yang dikerjakan pada repositori Backend ini selama fase evaluasi MLOps:
+
+**Checkpoint 2 (Model Serving & Integrasi Aplikasi)**
+- Mengonversi model ML (*Gradient Boosting*) dan graf jalanan menjadi *artifacts* siap saji (`.joblib`) agar dapat dimuat dengan sangat cepat ke memori (mencegah *loading* lambat saat server dinyalakan).
+- Membangun **REST API Serving** menggunakan FastAPI untuk melayani prediksi secara *real-time* (*Risk Indicator*, *Safe Places*, dan *Safe Route*).
+- Mengintegrasikan sistem autentikasi pengguna dan fitur *Trusted Contacts* melalui Supabase.
+
+**Checkpoint 3 (Observability, Monitoring & Delivery)**
+- Menerapkan **Automated Background Logging** untuk mencatat setiap metrik prediksi, *payload*, dan *latency* ke *database* tanpa menghambat waktu respons (*non-blocking*).
+- Membangun API untuk **Monitoring Dashboard (KPI Quality & Scope)** guna melacak persentase kegagalan (*Error Rate*), menjamin adopsi fitur MVP, dan memantau peringatan **Data Drift** dari Model Registry.
+- Menyusun dokumentasi *endpoint* interaktif (Swagger) dan kelengkapan *environment* untuk *deployment*.
+
 ## 🛠 Teknologi yang Digunakan
 
 - **Framework**: [FastAPI](https://fastapi.tiangolo.com/) (Framework Python asinkron dengan performa tinggi)
